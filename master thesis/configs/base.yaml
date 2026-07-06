@@ -2,8 +2,9 @@ pipeline_name: stark_amazon_retrieval
 random_seed: 4000243  # matriculation number — matches RANDOM_SEED in src/utils/seed.py
 
 api:
-  base_url: "https://chat-ai.academiccloud.de/v1"
-  api_key_env: "KISSKI_API_KEY"  # name of the env var; never put the key itself here
+  base_url: "http://localhost:8000/v1"   # vLLM server on aixsrv1; start with scripts/start_vllm_server.sh
+  api_key_env: "VLLM_API_KEY"           # any non-empty string works for vLLM
+  # fallback (lightweight testing): base_url: "https://chat-ai.academiccloud.de/v1", api_key_env: "KISSKI_API_KEY"
 
 step_a:
   model_name: "Qwen3-30B-A3B-Instruct-2507"
@@ -17,7 +18,7 @@ step_b:
   top_dense: 100
   top_candidates: 50
   k_rrf: 60
-  dense_model_name: "intfloat/e5-mistral-7b-instruct"  # UNCONFIRMED on KISSKI — verify before use; fallback: Qwen3-Embedding-4B run locally on GWDG HPC
+  dense_model_name: "intfloat/e5-mistral-7b-instruct"  # loaded directly on aixsrv1 GPU via HuggingFace
   faiss_index_path: "data/faiss_index/stark_amazon.index"
   corpus_path: "data/stark_amazon/corpus.jsonl"
 
