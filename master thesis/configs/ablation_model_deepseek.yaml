@@ -1,0 +1,3 @@
+step_c:
+  model_name: "DeepSeek-R1-Distill-Llama-70B"
+  thinking_mode: true  # reasoning model — flip from base default

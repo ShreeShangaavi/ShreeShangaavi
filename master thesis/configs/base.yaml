@@ -1,0 +1,40 @@
+pipeline_name: stark_amazon_retrieval
+random_seed: 4000243  # matriculation number — matches RANDOM_SEED in src/utils/seed.py
+
+api:
+  base_url: "https://chat-ai.academiccloud.de/v1"
+  api_key_env: "KISSKI_API_KEY"  # name of the env var; never put the key itself here
+
+step_a:
+  model_name: "Qwen3-30B-A3B-Instruct-2507"
+  temperature: 0.0
+  max_tokens: 1024
+  thinking_mode: false
+
+step_b:
+  retrieval_mode: "rrf"  # rrf | bm25_only | dense_only
+  top_bm25: 100
+  top_dense: 100
+  top_candidates: 50
+  k_rrf: 60
+  dense_model_name: "intfloat/e5-mistral-7b-instruct"  # UNCONFIRMED on KISSKI — verify before use; fallback: Qwen3-Embedding-4B run locally on GWDG HPC
+  faiss_index_path: "data/faiss_index/stark_amazon.index"
+  corpus_path: "data/stark_amazon/corpus.jsonl"
+
+step_c:
+  model_name: null  # TBD — set after Model Comparison Study (see configs/model_comparison/)
+  k_verify: 20
+  snippet_count: 5
+  temperature: 0.0
+  max_tokens: 512
+  thinking_mode: false  # flip to true if a reasoning model (e.g. DeepSeek-R1-Distill) wins the comparison study
+
+evaluation:
+  test_split: "test"        # Step B — full test set (1,642 queries)
+  rerank_split: "test-0.1"  # Step C and all ablations (164 queries, fixed official STARK split)
+  results_dir: "results/"
+  metrics:
+    - "hit@1"
+    - "hit@5"
+    - "recall@20"
+    - "mrr"

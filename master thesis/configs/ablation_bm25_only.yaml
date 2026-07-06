@@ -1,0 +1,2 @@
+step_b:
+  retrieval_mode: "bm25_only"

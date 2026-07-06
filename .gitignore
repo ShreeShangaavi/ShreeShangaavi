@@ -11,3 +11,17 @@ __pycache__/
 # macOS + VS Code
 .DS_Store
 .vscode/
+
+# Thesis: data and outputs
+data/
+!data/.gitkeep
+results/
+outputs/
+
+# Vector indices
+*.index
+*.faiss
+
+# Secrets
+.env
+*.env
