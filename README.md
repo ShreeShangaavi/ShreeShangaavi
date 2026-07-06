@@ -17,7 +17,7 @@ I care a lot about **reproducibility and clarity** - if someone else can’t und
 ---
 
 ### Experience
-**Working Student - Strategy & Data Analyst (Pricing, Planning & Analytics)**  
+**Working Student - Strategy & Data Analyst in Data Analytics Team**  
 *ABOUT YOU | Hamburg*
 
 I work with large datasets to support pricing decisions across multiple markets.  
