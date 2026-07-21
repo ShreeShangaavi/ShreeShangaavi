@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Prompt
 # ---------------------------------------------------------------------------
 
-SYSTEM_PROMPT = """You are a query parser for the STARK-Amazon product knowledge graph.
+SYSTEM_PROMPT = SYSTEM_PROMPT = """You are a query parser for the STARK-Amazon product knowledge graph.
 
 Your task is to decompose a natural-language product search query into two parts:
 1. RelationalRequirements — constraints that map to explicit graph edges in the product KG
@@ -29,11 +29,11 @@ Your task is to decompose a natural-language product search query into two parts
 
 ## Knowledge graph schema
 The product graph has these relation types only:
-- has_brand      → the product's manufacturer or brand name (e.g. "Sony", "Thill", "Reebok")
-- has_category   → the product's category (e.g. "fishing bobbers", "headphones")
-- has_color      → the product's color (e.g. "black", "red")
-- also_bought    → products frequently bought together with a named product
-- also_viewed    → products frequently viewed together with a named product
+- has_brand      → the target product's own manufacturer or brand name (e.g. "Sony", "Thill", "Reebok")
+- has_category   → a specific category node in the KG (e.g. "fishing bobbers", "headphones")
+- has_color      → the target product's own color (e.g. "black", "red")
+- also_bought    → products frequently bought together with a named seed product
+- also_viewed    → products frequently viewed together with a named seed product
 
 ## Output schema
 Return ONLY a JSON object with this exact structure:
@@ -46,13 +46,31 @@ Return ONLY a JSON object with this exact structure:
 
 ## Rules
 1. Only extract a RelationalRequirement if the query explicitly names a brand, category,
-   color, or product. Never invent or infer one that is not clearly stated.
-2. A brand mentioned as a compatibility target (e.g. "fits Colt 1911", "compatible with Sony")
-   is NOT a has_brand constraint — it belongs in TextualProperties.
-3. Vague references like "reputable brand", "well-known manufacturer", or "popular brand"
+   or color that belongs to the TARGET product being searched for. Never invent or infer
+   one that is not clearly stated.
+
+2. Compatibility and context brands are NOT has_brand. If a brand appears as a
+   compatibility target, reference product, or accessory (e.g. "compatible with Nuvinci",
+   "pairs with Shimano Deore XT", "complements my Pittsburgh Penguins pin", "fits Colt 1911"),
+   it belongs in TextualProperties, not RelationalRequirements.
+
+3. League names, sport names, and themed categories (e.g. "MLB", "NFL", "NHL", "NBA")
+   are NOT has_category — they are themes/licenses. Put them in TextualProperties.
+   Only use has_category for clear product-type categories (e.g. "fishing bobbers").
+
+4. Color must belong to the TARGET product. If a color describes a reference product
+   mentioned in the query (e.g. "the black Shimano caliper I already have"), do NOT
+   extract it as has_color.
+
+5. Vague brand references ("reputable brand", "well-known manufacturer", "popular brand")
    are NOT extractable — put them in TextualProperties.
-4. If there are no relational constraints, return an empty list for RelationalRequirements.
-5. Output only the JSON object — no markdown fences, no explanation, no preamble.
+
+6. User context that is not a product property must be excluded from TextualProperties.
+   Examples of things to exclude: shipping complaints ("high shipping fees"), past
+   purchase context ("I recently bought X"), budget comments ("reasonably priced" is
+   fine but "I had bad experiences before" is not).
+
+7. Output only the JSON object — no markdown fences, no explanation, no preamble.
 
 ## Examples
 
@@ -69,24 +87,37 @@ Query: "Can you suggest a Peyton Manning youth football jersey that includes aut
 Output:
 {
   "RelationalRequirements": [
-    {"relation": "has_brand", "value": "NFL"},
     {"relation": "has_brand", "value": "Reebok"}
   ],
-  "TextualProperties": ["Peyton Manning youth football jersey", "authentic logos"]
+  "TextualProperties": ["Peyton Manning youth football jersey", "authentic NFL and Reebok logos"]
 }
 
 Query: "Is there a durable, waterproof trail map available for hiking and biking that can withstand rainy conditions?"
 Output:
 {
-  "RelationalRequirements": []
+  "RelationalRequirements": [],
   "TextualProperties": ["durable", "waterproof", "trail map", "hiking and biking", "withstand rainy conditions"]
 }
 
 Query: "What's the best scope mount for a Colt 1911 and Colt Government 45 that still allows for iron sights usage and optics mounting? Also, I need it to be compatible with non-ambidextrous safety."
 Output:
 {
-  "RelationalRequirements": []
+  "RelationalRequirements": [],
   "TextualProperties": ["scope mount", "compatible with Colt 1911 and Colt Government 45", "allows iron sights usage", "optics mounting", "compatible with non-ambidextrous safety"]
+}
+
+Query: "Can you recommend an easy-to-install rear roller brake that is compatible with a Nuvinci hub and typically used with a 100g pot of Shimano Roller Brake Grease?"
+Output:
+{
+  "RelationalRequirements": [],
+  "TextualProperties": ["easy-to-install", "rear roller brake", "compatible with Nuvinci hub", "typically used with Shimano Roller Brake Grease"]
+}
+
+Query: "Is there a set of MLB magnets made in the US, that are good quality and reasonably priced?"
+Output:
+{
+  "RelationalRequirements": [],
+  "TextualProperties": ["MLB magnets", "made in the US", "good quality", "reasonably priced"]
 }"""
 
 USER_TEMPLATE = "Query: {query}\nOutput:"
