@@ -2,12 +2,12 @@ pipeline_name: stark_amazon_retrieval
 random_seed: 4000243  # matriculation number — matches RANDOM_SEED in src/utils/seed.py
 
 api:
-  base_url: "http://localhost:8000/v1"   # vLLM server on aixsrv1; start with scripts/start_vllm_server.sh
+  base_url: "http://localhost:8002/v1"   # vLLM server on aixsrv1; start with scripts/start_vllm_server.sh
   api_key_env: "VLLM_API_KEY"           # any non-empty string works for vLLM
   # fallback (lightweight testing): base_url: "https://chat-ai.academiccloud.de/v1", api_key_env: "KISSKI_API_KEY"
 
 step_a:
-  model_name: "Qwen3-30B-A3B-Instruct-2507"
+  model_name: "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8"
   temperature: 0.0
   max_tokens: 1024
   thinking_mode: false

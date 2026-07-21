@@ -44,7 +44,8 @@ class StepCConfig(BaseModel):
 
 class EvaluationConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
-    eval_sample_fraction: float
+    test_split: str        # "test" — 1,642 queries, Step B
+    rerank_split: str      # "test-0.1" — 164 queries, Step C + ablations
     results_dir: str
     metrics: list[str]
 
